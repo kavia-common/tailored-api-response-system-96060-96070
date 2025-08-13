@@ -18,10 +18,10 @@ openapi_tags = [
 ]
 
 app = FastAPI(
-    title="Tailored API Response Backend",
+    title="TATA ELXSI MOCK API",
     description=(
-        "Backend service that issues JWT tokens and returns responses tailored "
-        "to each user's subscription package."
+        "TATA ELXSI MOCK API - A mock backend that issues JWT tokens and returns "
+        "responses tailored to each user's subscription package."
     ),
     version="1.0.0",
     openapi_tags=openapi_tags,
