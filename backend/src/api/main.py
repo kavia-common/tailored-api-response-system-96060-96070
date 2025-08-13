@@ -7,12 +7,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api.routers import auth as auth_router
 from src.api.routers import dashboard as dashboard_router
 from src.api.routers import package as package_router
+from src.api.routers import account as account_router
 
 # App metadata for OpenAPI
 openapi_tags = [
     {"name": "Authentication", "description": "User signup and login endpoints issuing JWTs"},
     {"name": "Dashboard", "description": "User/package dashboard endpoints"},
     {"name": "Tailored API", "description": "APIs that tailor responses based on user package tier"},
+    {"name": "Account", "description": "Endpoints for user account operations like viewing/updating plan/package"},
 ]
 
 app = FastAPI(
@@ -53,3 +55,4 @@ def health_check():
 app.include_router(auth_router.router)
 app.include_router(dashboard_router.router)
 app.include_router(package_router.router)
+app.include_router(account_router.router)

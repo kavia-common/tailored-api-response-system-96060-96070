@@ -21,7 +21,10 @@ class SignupRequest(BaseModel):
     """Signup input payload."""
     email: EmailStr = Field(..., description="Email for account signup")
     password: str = Field(..., min_length=6, description="Password (min 6 chars)")
-    package_tier: Optional[PackageTier] = Field(None, description="Optional package tier; defaults to 'free' if omitted")
+    package_tier: Optional[PackageTier] = Field(
+        None,
+        description="Optional package tier; defaults to 'free' if omitted",
+    )
 
 
 class LoginRequest(BaseModel):
@@ -57,3 +60,15 @@ class TailoredContentResponse(BaseModel):
     data_pro: Optional[List[str]] = Field(None, description="Additional data for pro and above")
     data_enterprise: Optional[List[str]] = Field(None, description="Additional data for enterprise only")
     analytics: Optional[dict] = Field(None, description="Enterprise analytics bundle")
+
+
+# PUBLIC_INTERFACE
+class PlanInfo(BaseModel):
+    """Minimal representation of a user's plan/package."""
+    package_tier: PackageTier = Field(..., description="The current subscription package tier")
+
+
+# PUBLIC_INTERFACE
+class PlanUpdateRequest(BaseModel):
+    """Payload to update the current user's plan/package."""
+    package_tier: PackageTier = Field(..., description="New subscription package tier to apply")

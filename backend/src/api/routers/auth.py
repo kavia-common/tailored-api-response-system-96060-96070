@@ -76,7 +76,10 @@ def login(
 
     if not final_email or not final_password:
         # Let FastAPI return 422 for missing fields or provide a clear error
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="email/username and password are required")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="email/username and password are required",
+        )
 
     record = db.verify_password(email=str(final_email), password=final_password)
     if not record:
