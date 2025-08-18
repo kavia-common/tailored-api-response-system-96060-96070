@@ -3,6 +3,7 @@ from typing import List
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
 from src.api.routers import auth as auth_router
 from src.api.routers import dashboard as dashboard_router
@@ -27,13 +28,33 @@ app = FastAPI(
     openapi_tags=openapi_tags,
 )
 
-# CORS configuration from env
-cors_origins_env = os.getenv("CORS_ORIGINS", "*")
-allow_origins: List[str]
-if cors_origins_env.strip() == "*":
-    allow_origins = ["*"]
+# CORS and environment configuration
+# Load variables from .env if present (useful in dev/preview environments)
+load_dotenv()
+
+cors_origins_env = os.getenv("CORS_ORIGINS", "").strip()
+allow_origins: List[str] = []
+
+if cors_origins_env:
+    # Comma-separated list of origins
+    allow_origins = [o.strip().rstrip("/") for o in cors_origins_env.split(",") if o.strip()]
 else:
-    allow_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+    # Fallback to common frontend/site URL env vars if provided
+    possible_vars = [
+        "FRONTEND_ORIGIN",
+        "FRONTEND_URL",
+        "SITE_URL",
+        "PUBLIC_SITE_URL",
+        "REACT_APP_SITE_URL",
+        "VITE_SITE_URL",
+    ]
+    for var in possible_vars:
+        v = os.getenv(var)
+        if v and v.strip():
+            allow_origins.append(v.strip().rstrip("/"))
+    # Last resort for open development; prefer explicit origins in production
+    if not allow_origins:
+        allow_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
