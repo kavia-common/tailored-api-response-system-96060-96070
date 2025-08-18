@@ -8,7 +8,6 @@ from pydantic import BaseModel
 
 from .schemas import (
     SignupRequest,
-    LoginRequest,
     TokenResponse,
     UserPublic,
     DashboardFeature,
@@ -50,14 +49,20 @@ openapi_tags = [
     {"name": "Authentication", "description": "User signup and login endpoints issuing JWTs"},
     {"name": "Dashboard", "description": "User/package dashboard endpoints"},
     {"name": "Tailored API", "description": "APIs that tailor responses based on user package tier"},
-    {"name": "Account", "description": "Endpoints for user account operations like viewing/updating plan/package"},
+    {
+        "name": "Account",
+        "description": "Endpoints for user account operations like viewing/updating plan/package",
+    },
 ]
 
 APP_NAME = os.environ.get("APP_NAME", "TATA ELXSI MOCK API")
 
 app = FastAPI(
     title=APP_NAME,
-    description="TATA ELXSI MOCK API - A mock backend that issues JWT tokens and returns responses tailored to each user's subscription package.",
+    description=(
+        "TATA ELXSI MOCK API - A mock backend that issues JWT tokens and "
+        "returns responses tailored to each user's subscription package."
+    ),
     version="1.0.0",
     openapi_tags=openapi_tags,
 )
@@ -76,12 +81,31 @@ def _features_for_tier(tier: str) -> List[DashboardFeature]:
     tier = (tier or "").lower().strip()
     base = [
         DashboardFeature(key="basic-search", label="Basic Search", enabled=True, limit=100),
-        DashboardFeature(key="reports", label="Reports", enabled=tier in {"pro", "enterprise"}, limit=10 if tier == "pro" else (50 if tier == "enterprise" else None)),
-        DashboardFeature(key="export", label="Data Export", enabled=tier in {"pro", "enterprise"}),
-        DashboardFeature(key="analytics", label="Advanced Analytics", enabled=tier == "enterprise"),
+        DashboardFeature(
+            key="reports",
+            label="Reports",
+            enabled=tier in {"pro", "enterprise"},
+            limit=10 if tier == "pro" else (50 if tier == "enterprise" else None),
+        ),
+        DashboardFeature(
+            key="export",
+            label="Data Export",
+            enabled=tier in {"pro", "enterprise"},
+        ),
+        DashboardFeature(
+            key="analytics",
+            label="Advanced Analytics",
+            enabled=tier == "enterprise",
+        ),
     ]
     # Add a synthetic per-tier marker feature
-    base.append(DashboardFeature(key=f"tier-{tier or 'free'}", label=f"Tier: {tier or 'free'}", enabled=True))
+    base.append(
+        DashboardFeature(
+            key=f"tier-{tier or 'free'}",
+            label=f"Tier: {tier or 'free'}",
+            enabled=True,
+        )
+    )
     return base
 
 
@@ -107,7 +131,10 @@ def health_check():
     status_code=status.HTTP_201_CREATED,
     tags=["Authentication"],
     summary="Create account and issue token",
-    description="Registers a new user with optional package tier (defaults to 'free') and returns a JWT access token.",
+    description=(
+        "Registers a new user with optional package tier (defaults to 'free') "
+        "and returns a JWT access token."
+    ),
 )
 def signup(payload: SignupRequest, store: MemoryUserStore = Depends(lambda: store_singleton)):
     """
@@ -146,8 +173,17 @@ def signup(payload: SignupRequest, store: MemoryUserStore = Depends(lambda: stor
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     # Optional explicit fields for compatibility with clients posting 'email' in form
-    email: Optional[str] = Form(default=None, description="Email for account login when using form-encoded payloads (alias of 'username')."),
-    password: Optional[str] = Form(default=None, description="Password for account login when using form-encoded payloads."),
+    email: Optional[str] = Form(
+        default=None,
+        description=(
+            "Email for account login when using form-encoded payloads "
+            "(alias of 'username')."
+        ),
+    ),
+    password: Optional[str] = Form(
+        default=None,
+        description="Password for account login when using form-encoded payloads.",
+    ),
     store: MemoryUserStore = Depends(lambda: store_singleton),
 ):
     """
@@ -195,7 +231,10 @@ def me(current_user: UserRecord = Depends(get_current_user)):
     response_model=TailoredContentResponse,
     tags=["Tailored API"],
     summary="Get tailored content",
-    description="Returns content whose fields and richness depend on the requesting user's package tier.",
+    description=(
+        "Returns content whose fields and richness depend on the "
+        "requesting user's package tier."
+    ),
 )
 def get_content(current_user: UserRecord = Depends(get_current_user)):
     """
@@ -248,9 +287,17 @@ class _PlanUpdateResponse(BaseModel):
     response_model=PlanInfo,
     tags=["Account"],
     summary="Update current user's plan",
-    description="Updates the authenticated user's subscription package tier. Returns the new plan. Clients should re-fetch any package-tailored data after this change.",
+    description=(
+        "Updates the authenticated user's subscription package tier. "
+        "Returns the new plan. Clients should re-fetch any package-tailored "
+        "data after this change."
+    ),
 )
-def update_plan(payload: PlanUpdateRequest, current_user: UserRecord = Depends(get_current_user), store: MemoryUserStore = Depends(lambda: store_singleton)):
+def update_plan(
+    payload: PlanUpdateRequest,
+    current_user: UserRecord = Depends(get_current_user),
+    store: MemoryUserStore = Depends(lambda: store_singleton),
+):
     """
     PUBLIC_INTERFACE
     Update the authenticated user's plan/package.
